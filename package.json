@@ -1,0 +1,20 @@
+{
+  "name": "ai-lca-tool",
+  "version": "1.0.0",
+  "description": "AI-powered Life Cycle Assessment Tool for Metallurgy and Mining",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\" \"npm run ml:dev\"",
+    "backend:dev": "cd backend && npm run dev",
+    "frontend:dev": "cd frontend && npm start",
+    "ml:dev": "cd ml-service && python -m uvicorn main:app --reload --port 8001",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ../ml-service && pip install -r requirements.txt"
+  },
+  "keywords": ["lca", "sustainability", "metallurgy", "mining", "ai", "ml"],
+  "author": "AI LCA Tool Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+
