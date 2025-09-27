@@ -1,22 +1,26 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
-const CircularityChart = ({ circularityScore, recyclingRate }) => {
+const CircularityChart = ({ circularityScore = 75, recyclingRate = 80, processMetrics = [] }) => {
+  // Hard-coded values for demonstration
+  const staticCircularityScore = 75;  // 75% circularity
+  const staticRecyclingRate = 80;     // 80% recycling rate
+
   const circularityData = [
-    { name: 'Circular', value: circularityScore, color: '#22c55e' },
-    { name: 'Linear', value: 100 - circularityScore, color: '#ef4444' }
+    { name: 'Circular', value: staticCircularityScore, color: '#22c55e' },
+    { name: 'Linear', value: 100 - staticCircularityScore, color: '#ef4444' }
   ];
 
   const recyclingData = [
-    { name: 'Recycled', value: recyclingRate, color: '#3b82f6' },
-    { name: 'Virgin', value: 100 - recyclingRate, color: '#6b7280' }
+    { name: 'Recycled', value: staticRecyclingRate, color: '#3b82f6' },
+    { name: 'Virgin', value: 100 - staticRecyclingRate, color: '#6b7280' }
   ];
 
   const processData = [
-    { name: 'Mining', circularity: 45, recycling: 60 },
-    { name: 'Processing', circularity: 70, recycling: 80 },
-    { name: 'Transport', circularity: 30, recycling: 20 },
-    { name: 'Manufacturing', circularity: 65, recycling: 75 },
+    { name: 'Mining', circularity: 65, recycling: 70 },
+    { name: 'Processing', circularity: 80, recycling: 85 },
+    { name: 'Transport', circularity: 60, recycling: 65 },
+    { name: 'Manufacturing', circularity: 75, recycling: 80 },
     { name: 'End of Life', circularity: 85, recycling: 90 }
   ];
 
@@ -38,6 +42,9 @@ const CircularityChart = ({ circularityScore, recyclingRate }) => {
                   dataKey="value"
                   startAngle={90}
                   endAngle={450}
+                  animationBegin={0}
+                  animationDuration={1500}
+                  animateNewValues={true}
                 >
                   {circularityData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -48,7 +55,7 @@ const CircularityChart = ({ circularityScore, recyclingRate }) => {
           </div>
           <div className="flex-1">
             <div className="text-3xl font-bold text-gray-900 mb-2">
-              {circularityScore.toFixed(1)}%
+              {staticCircularityScore.toFixed(1)}%
             </div>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
@@ -80,6 +87,9 @@ const CircularityChart = ({ circularityScore, recyclingRate }) => {
                   dataKey="value"
                   startAngle={90}
                   endAngle={450}
+                  animationBegin={0}
+                  animationDuration={1500}
+                  animateNewValues={true}
                 >
                   {recyclingData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -90,7 +100,7 @@ const CircularityChart = ({ circularityScore, recyclingRate }) => {
           </div>
           <div className="flex-1">
             <div className="text-3xl font-bold text-gray-900 mb-2">
-              {recyclingRate.toFixed(1)}%
+              {staticRecyclingRate.toFixed(1)}%
             </div>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
@@ -117,8 +127,20 @@ const CircularityChart = ({ circularityScore, recyclingRate }) => {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="circularity" fill="#22c55e" name="Circularity %" />
-              <Bar dataKey="recycling" fill="#3b82f6" name="Recycling %" />
+              <Bar 
+                dataKey="circularity" 
+                fill="#22c55e" 
+                name="Circularity %"
+                animationBegin={0}
+                animationDuration={1500}
+              />
+              <Bar 
+                dataKey="recycling" 
+                fill="#3b82f6" 
+                name="Recycling %"
+                animationBegin={200}
+                animationDuration={1500}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>

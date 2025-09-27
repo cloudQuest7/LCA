@@ -128,6 +128,24 @@ async def analyze_project(
     Analyze a project and generate ML predictions for all processes
     """
     try:
+        # First verify models are loaded
+        model_status = {
+            "co2_predictor": co2_predictor.is_trained(),
+            "energy_predictor": energy_predictor.is_trained(),
+            "recycling_predictor": recycling_predictor.is_trained(),
+            "pathway_classifier": pathway_classifier.is_trained(),
+            "lifetime_predictor": lifetime_predictor.is_trained(),
+            "circularity_predictor": circularity_predictor.is_trained()
+        }
+        
+        not_loaded = [name for name, status in model_status.items() if not status]
+        if not_loaded:
+            raise HTTPException(
+                status_code=503,
+                detail=f"Models not properly loaded: {', '.join(not_loaded)}"
+            )
+            
+        logger.info(f"Starting analysis for project {request.projectId}")
         logger.info(f"Analyzing project {request.projectId} with {len(request.processes)} processes")
         
         predictions = []
@@ -136,6 +154,7 @@ async def analyze_project(
         # Process each process in the project
         for process in request.processes:
             try:
+                logger.info(f"Processing data for process: {process.name}")
                 # Preprocess process data
                 processed_data = data_preprocessor.preprocess_process(process.dict())
                 

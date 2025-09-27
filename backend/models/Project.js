@@ -118,11 +118,17 @@ const processDataSchema = new mongoose.Schema({
     predictedCO2: Number,
     predictedEnergy: Number,
     predictedRecyclingRate: Number,
+    predictedCircularityScore: Number,
     pathwayClassification: {
       type: String,
       enum: ['linear', 'circular', 'hybrid']
     },
-    confidence: Number
+    confidence: Number,
+    circularityMetrics: {
+      overallScore: { type: Number, default: 0 },
+      recyclingRate: { type: Number, default: 0 },
+      circularProcessPercentage: { type: Number, default: 0 }
+    }
   },
   // Metadata
   dataQuality: {
