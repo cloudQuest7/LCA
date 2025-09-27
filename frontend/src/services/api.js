@@ -54,7 +54,7 @@ export const projectAPI = {
   deleteProject: (projectId) => api.delete(`/projects/${projectId}`),
   addProcess: (projectId, processData) => api.post(`/projects/${projectId}/processes`, processData),
   updateProcess: (projectId, processId, processData) => api.put(`/projects/${projectId}/processes/${processId}`, processData),
-  deleteProcess: (projectId, processId) => api.delete(`/projects/${projectId}/processes/${processId}`),
+  deleteProcess: (projectId, processId) => api.delete(`/projects/${projectId}/processes/${processId}`)
 };
 
 // Analysis API

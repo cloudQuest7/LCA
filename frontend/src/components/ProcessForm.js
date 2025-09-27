@@ -6,13 +6,24 @@ import LoadingSpinner from './LoadingSpinner';
 const ProcessForm = ({ projectId, process = null, onClose }) => {
   const { addProcess, updateProcess } = useProject();
   const [loading, setLoading] = useState(false);
+
+  // Proper default shape – all amount fields exist!
   const [formData, setFormData] = useState({
     name: process?.name || '',
     type: process?.type || 'mining',
     rawMaterials: process?.rawMaterials || [],
-    energy: process?.energy || { electricity: {}, fuel: {} },
-    impacts: process?.impacts || { co2Emissions: {}, waterUse: {}, waste: {} },
-    circularity: process?.circularity || {},
+    energy: process?.energy || { electricity: { amount: 0 }, fuel: { amount: 0 } },
+    impacts: process?.impacts || {
+      co2Emissions: { amount: 0 },
+      waterUse: { amount: 0 },
+      waste: { amount: 0 }
+    },
+    circularity: process?.circularity || {
+      recyclability: 0,
+      reusability: 0,
+      durability: 0,
+      repairability: 0
+    },
     transport: process?.transport || {},
     endOfLife: process?.endOfLife || {},
     dataQuality: process?.dataQuality || 'medium',
@@ -35,26 +46,41 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
     { value: 'low', label: 'Low' }
   ];
 
+  // Improved nested property change handler for numbers
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    
+    const { name, value, type } = e.target;
+    const parsedValue = type === 'number' ? (value === '' ? '' : Number(value)) : value;
+
     if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: value
-        }
-      }));
+      const [parent, child, grandchild] = name.split('.');
+      if (grandchild) {
+        // For deeper nesting
+        setFormData(prev => ({
+          ...prev,
+          [parent]: {
+            ...prev[parent],
+            [child]: {
+              ...prev[parent]?.[child],
+              [grandchild]: parsedValue
+            }
+          }
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [parent]: {
+            ...prev[parent],
+            [child]: parsedValue
+          }
+        }));
+      }
     } else {
       setFormData(prev => ({
         ...prev,
-        [name]: value
+        [name]: parsedValue
       }));
     }
-    
-    // Clear error when user starts typing
+
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -94,35 +120,34 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
 
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.name.trim()) {
       newErrors.name = 'Process name is required';
     }
-
     if (!formData.type) {
       newErrors.type = 'Process type is required';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
+
+    // Convert any '' back to 0 for required numeric fields
+    const safeFormData = JSON.parse(JSON.stringify(formData, (key, value) => {
+      if (typeof value === 'string' && value === '') return 0;
+      return value;
+    }));
 
     try {
       setLoading(true);
-      
+
       if (process) {
-        await updateProcess(projectId, process._id, formData);
+        await updateProcess(projectId, process._id, safeFormData);
       } else {
-        await addProcess(projectId, formData);
+        await addProcess(projectId, safeFormData);
       }
-      
       onClose();
     } catch (error) {
       console.error('Error saving process:', error);
@@ -166,7 +191,6 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
                 <p className="mt-1 text-sm text-error-600">{errors.name}</p>
               )}
             </div>
-
             <div>
               <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
                 Process Type *
@@ -203,7 +227,6 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
                 Add Material
               </button>
             </div>
-            
             {formData.rawMaterials.map((material, index) => (
               <div key={index} className="border border-gray-200 rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-between mb-4">
@@ -216,7 +239,6 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
                     <Minus className="w-4 h-4" />
                   </button>
                 </div>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -301,7 +323,7 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
                 <input
                   type="number"
                   name="energy.electricity.amount"
-                  value={formData.energy.electricity.amount || ''}
+                  value={formData.energy.electricity.amount ?? ''}
                   onChange={handleChange}
                   className="input"
                   placeholder="0"
@@ -314,7 +336,7 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
                 <input
                   type="number"
                   name="energy.fuel.amount"
-                  value={formData.energy.fuel.amount || ''}
+                  value={formData.energy.fuel.amount ?? ''}
                   onChange={handleChange}
                   className="input"
                   placeholder="0"
@@ -334,7 +356,7 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
                 <input
                   type="number"
                   name="impacts.co2Emissions.amount"
-                  value={formData.impacts.co2Emissions.amount || ''}
+                  value={formData.impacts.co2Emissions.amount ?? ''}
                   onChange={handleChange}
                   className="input"
                   placeholder="0"
@@ -347,7 +369,7 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
                 <input
                   type="number"
                   name="impacts.waterUse.amount"
-                  value={formData.impacts.waterUse.amount || ''}
+                  value={formData.impacts.waterUse.amount ?? ''}
                   onChange={handleChange}
                   className="input"
                   placeholder="0"
@@ -360,7 +382,7 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
                 <input
                   type="number"
                   name="impacts.waste.amount"
-                  value={formData.impacts.waste.amount || ''}
+                  value={formData.impacts.waste.amount ?? ''}
                   onChange={handleChange}
                   className="input"
                   placeholder="0"
@@ -382,7 +404,7 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
                   min="0"
                   max="100"
                   name="circularity.recyclability"
-                  value={formData.circularity.recyclability || ''}
+                  value={formData.circularity.recyclability ?? ''}
                   onChange={handleChange}
                   className="input"
                   placeholder="0"
@@ -397,7 +419,7 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
                   min="0"
                   max="100"
                   name="circularity.reusability"
-                  value={formData.circularity.reusability || ''}
+                  value={formData.circularity.reusability ?? ''}
                   onChange={handleChange}
                   className="input"
                   placeholder="0"
@@ -410,7 +432,7 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
                 <input
                   type="number"
                   name="circularity.durability"
-                  value={formData.circularity.durability || ''}
+                  value={formData.circularity.durability ?? ''}
                   onChange={handleChange}
                   className="input"
                   placeholder="0"
@@ -425,7 +447,7 @@ const ProcessForm = ({ projectId, process = null, onClose }) => {
                   min="0"
                   max="100"
                   name="circularity.repairability"
-                  value={formData.circularity.repairability || ''}
+                  value={formData.circularity.repairability ?? ''}
                   onChange={handleChange}
                   className="input"
                   placeholder="0"
